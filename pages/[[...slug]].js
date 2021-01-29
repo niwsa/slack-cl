@@ -128,7 +128,7 @@ export default function Home() {
   }, [videos]);
 
   const fetchRooms = async () => {
-    const res = await fetch("http://localhost:9000/rooms");
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/rooms`);
     if (res.ok) {
       const rooms = await res.json();
       setRooms(rooms);
@@ -136,7 +136,9 @@ export default function Home() {
   };
 
   const createRoom = async () => {
-    const res = await fetch("http://localhost:9000/room", { method: "POST" });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/room`, {
+      method: "POST",
+    });
     if (res.ok) {
       await fetchRooms();
     }

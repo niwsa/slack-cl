@@ -8,8 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "firebase": "^8.2.4",
     "next": "10.0.5",
+    "peerjs": "^1.3.1",
     "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react-dom": "17.0.1",
+    "sass": "^1.32.5",
+    "socket.io-client": "^3.1.0",
+    "webrtc-adapter": "^7.7.0"
   }
 }

@@ -1,0 +1,96 @@
+.workspace {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 260px auto;
+
+  .sidebar {
+    background: #3f0e40;
+    color: rgb(207, 195, 207);
+    ul {
+      padding: 0 16px;
+      li {
+        height: 28px;
+        line-height: 28px;
+      }
+    }
+    button {
+      height: 28px;
+      background: none;
+      border: 0;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      color: inherit;
+      padding: 0 16px;
+      cursor: pointer;
+      svg {
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        margin-right: 8px;
+      }
+    }
+  }
+  .videogrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 300px);
+    grid-auto-rows: 300px;
+  }
+
+  // .chatview {
+  //   display: flex;
+  //   padding: 16px;
+
+  //   .bob,
+  //   .alice {
+  //     height: 100%;
+  //     flex: 1;
+  //     display: flex;
+  //     flex-direction: column;
+
+  //     section {
+  //       flex: 1;
+  //     }
+  //   }
+  //   .alice {
+  //     margin-left: 16px;
+  //   }
+  // }
+}
+
+.txteditor {
+  border: 1px solid rgba(29, 28, 29, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  textarea {
+    margin-top: 8px;
+    padding: 5px 10px 48px 10px;
+    width: 100%;
+    border: 0;
+    resize: none;
+    outline: none;
+    max-height: calc(60vh - 48px);
+    overflow: auto;
+  }
+}
+
+.actionBar {
+  background: #f8f8f8;
+  height: 52px;
+  position: relative;
+}
+.send {
+  height: 32px;
+  width: 32px;
+  background: #007a5a;
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+
+  svg {
+    vertical-align: middle;
+  }
+}

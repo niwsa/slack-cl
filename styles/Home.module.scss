@@ -6,7 +6,8 @@
   .sidebar {
     background: #3f0e40;
     color: rgb(207, 195, 207);
-    ul {
+    position: relative;
+    .roomlist {
       padding: 0 16px;
       li {
         height: 28px;
@@ -28,6 +29,23 @@
         height: 20px;
         background: rgba(255, 255, 255, 0.1);
         margin-right: 8px;
+      }
+    }
+    details {
+      background: #fed4be;
+      color: #000;
+      padding: 16px;
+      margin-top: auto;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      summary {
+        cursor: pointer;
+      }
+      ul {
+        // list-style: disc;
+        padding-left: 8px;
+        list-style-type: disc;
       }
     }
   }

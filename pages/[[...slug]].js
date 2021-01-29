@@ -243,7 +243,7 @@ export default function Home() {
   return (
     <main className={styles.workspace}>
       <div className={styles.sidebar}>
-        <ul>
+        <ul className={styles.roomlist}>
           {rooms.map((r) => (
             <li key={r}>
               <Link href={`${r}`}>
@@ -265,6 +265,20 @@ export default function Home() {
           </svg>
           Add Room
         </button>
+        <details open>
+          <summary>
+            DETAILS: This app streams video from your webcam using WebRTC,
+            Multiple clients can connect to a room and stream their webcam
+            stream.
+          </summary>
+          <ul>
+            <li>Click on the room in the left pane</li>
+            <li>Open the same link in another window/tab</li>
+            <li>
+              If no room you can add room by clicking Add Room button above
+            </li>
+          </ul>
+        </details>
       </div>
 
       <div className={styles.videogrid}>

@@ -49,12 +49,14 @@ export default function Home() {
     }
   };
 
-  function addVideo(stream) {
+  function addVideo(stream, userId) {
+    console.log(`adding video from ${userId}`);
     setVideos((cur) => {
       const videoInArr = cur.findIndex(
         ({ stream: vStream }) => vStream === stream
       );
       if (videoInArr !== -1) {
+        console.log(`video stream already in grid`);
         return cur;
       }
       return [...cur, { stream: stream, ref: createRef() }];
@@ -81,25 +83,26 @@ export default function Home() {
           audio: true,
         })
         .then((stream) => {
-          console.log(`add video L168`);
-          addVideo(stream);
+          console.log(`add video L86`);
+          addVideo(stream, myPeer.id);
 
           myPeer.on("call", (call) => {
-            console.log(`answering call from ${call.peer} L172`);
+            console.log(`answering call from ${call.peer} L90`);
             call.answer(stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L175`);
-              addVideo(userVideoStream);
+              console.log(`add video L93`);
+              addVideo(userVideoStream, call.peer);
             });
           });
           socket.on("user-connected", (userId) => {
-            console.log("user-connected L180 userId::", userId);
-
+            console.log("user-connected L98 userId::", userId);
             const call = myPeer.call(userId, stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L185`);
-              addVideo(userVideoStream);
+              console.log(`add video L101`);
+              addVideo(userVideoStream, userId);
               call.on("close", () => {
+                console.log(`closing user stream L104`);
+                userVideoStream.getTracks().forEach((track) => track.stop());
                 // delVideoStream(userVideoStream);
                 setVideos((cur) => {
                   const videoToDelIndex = cur.findIndex(

@@ -278,7 +278,7 @@ export default function Home() {
           <summary>
             DETAILS: This app streams video from your webcam using WebRTC,
             Multiple clients can connect to a room and stream their webcam
-            stream.````
+            stream.
           </summary>
           <ul>
             <li>Click on the room in the left pane</li>

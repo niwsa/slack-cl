@@ -59,7 +59,7 @@ export default function Home() {
         console.log(`video stream already in grid`);
         return cur;
       }
-      return [...cur, { stream: stream, ref: createRef() }];
+      return [...cur, { userId, stream: stream, ref: createRef() }];
     });
   }
 

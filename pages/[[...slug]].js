@@ -235,13 +235,12 @@ export default function Home() {
   }, [roomid]);
 
   useEffect(() => {
-    if (!roomid) {
-      videos.forEach(({ stream }) => {
-        console.log("stopping track");
-        stream.getTracks().forEach((track) => track.stop());
-      });
-      setVideos([]);
-    }
+    // whenever room changes stop current running streams
+    videos.forEach(({ stream }) => {
+      console.log("stopping track");
+      stream.getTracks().forEach((track) => track.stop());
+    });
+    setVideos([]);
   }, [roomid]);
 
   // useEffect(() => {

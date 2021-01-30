@@ -234,6 +234,16 @@ export default function Home() {
     roomid && importRTClib();
   }, [roomid]);
 
+  useEffect(() => {
+    if (!roomid) {
+      videos.forEach(({ stream }) => {
+        console.log("stopping track");
+        stream.getTracks().forEach((track) => track.stop());
+      });
+      setVideos([]);
+    }
+  }, [roomid]);
+
   // useEffect(() => {
   //   myPeerRef.current?.id &&
   //     roomid &&
@@ -269,7 +279,7 @@ export default function Home() {
           <summary>
             DETAILS: This app streams video from your webcam using WebRTC,
             Multiple clients can connect to a room and stream their webcam
-            stream.
+            stream.````
           </summary>
           <ul>
             <li>Click on the room in the left pane</li>

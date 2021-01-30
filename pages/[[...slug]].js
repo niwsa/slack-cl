@@ -10,9 +10,6 @@ export default function Home() {
 
   const roomid = slug?.[0];
 
-  console.log(`roomId`, roomid);
-
-  // const localUserId = useRef(null);
   const socketRef = useRef(null);
   const myPeerRef = useRef(null);
   const peers = useRef({});
@@ -56,7 +53,7 @@ export default function Home() {
         ({ stream: vStream }) => vStream === stream
       );
       if (videoInArr !== -1) {
-        console.log(`video stream already in grid`);
+        console.log(`video stream from ${userId} already in grid`);
         return cur;
       }
       return [...cur, { userId, stream: stream, ref: createRef() }];
@@ -85,37 +82,41 @@ export default function Home() {
         .then((stream) => {
           console.log(`add video L86`);
           addVideo(stream, myPeer.id);
-
+          myPeer.off("call");
+          // when someone calls it means we joined their room
+          // answer them with our stream
+          // also take the stream from the caller
           myPeer.on("call", (call) => {
-            console.log(`answering call from ${call.peer} L90`);
+            console.log(`answering call from ${call.peer}`);
             call.answer(stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L93`);
               addVideo(userVideoStream, call.peer);
             });
+            peers.current[call.peer] = call;
           });
+          socket.off("user-connected");
+          // when someone joins the room the socket.io server notifies on `user-connected` event
+          // call the person who joined and pass our stream
+          // also accept the stream from the person
           socket.on("user-connected", (userId) => {
-            console.log("user-connected L98 userId::", userId);
+            console.log("user-connected calling user... userId::", userId);
             const call = myPeer.call(userId, stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L101`);
               addVideo(userVideoStream, userId);
-              call.on("close", () => {
-                console.log(`closing user stream L104`);
-                userVideoStream.getTracks().forEach((track) => track.stop());
-                // delVideoStream(userVideoStream);
-                setVideos((cur) => {
-                  const videoToDelIndex = cur.findIndex(
-                    ({ stream }) => userVideoStream === stream
-                  );
-                  if (videoToDelIndex === -1) return cur;
-                  return [
-                    ...cur.slice(0, videoToDelIndex),
-                    ...cur.slice(videoToDelIndex + 1),
-                  ];
-                });
-                // delete peers.current[userId];
-              });
+              // call.on("close", () => {
+              //   console.log(`closing user stream L104`);
+              //   userVideoStream.getTracks().forEach((track) => track.stop());
+              //   setVideos((cur) => {
+              //     const videoToDelIndex = cur.findIndex(
+              //       ({ stream }) => userVideoStream === stream
+              //     );
+              //     if (videoToDelIndex === -1) return cur;
+              //     return [
+              //       ...cur.slice(0, videoToDelIndex),
+              //       ...cur.slice(videoToDelIndex + 1),
+              //     ];
+              //   });
+              // });
             });
 
             peers.current[userId] = call;
@@ -123,10 +124,21 @@ export default function Home() {
         });
 
       socket.on("user-disconnected", (userId) => {
-        console.log(`user disconnected`);
+        console.log(`user disconnected`, userId);
         if (peers.current[userId]) {
+          console.log(`turning off video for userId`, userId);
           peers.current[userId].close();
           delete peers.current[userId];
+          setVideos((cur) => {
+            const videoToDelIndex = cur.findIndex(
+              ({ userId: elUid }) => elUid === userId
+            );
+            if (videoToDelIndex === -1) return cur;
+            return [
+              ...cur.slice(0, videoToDelIndex),
+              ...cur.slice(videoToDelIndex + 1),
+            ];
+          });
         }
       });
     } catch (err) {
@@ -147,6 +159,7 @@ export default function Home() {
       stream.getTracks().forEach((track) => track.stop());
     });
     setVideos([]);
+    peers.current = {};
   }, [roomid]);
 
   useEffect(() => {

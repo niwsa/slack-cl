@@ -26,7 +26,7 @@ export default function Home() {
         v.ref.current.srcObject = v.stream;
         v.ref.current.muted = true;
         v.ref.current.addEventListener("loadedmetadata", () => {
-          v.ref.current.play();
+          v.ref.current?.play();
         });
       });
     }
@@ -59,7 +59,7 @@ export default function Home() {
         console.log(`video stream already in grid`);
         return cur;
       }
-      return [...cur, { stream: stream, ref: createRef() }];
+      return [...cur, { userId, stream: stream, ref: createRef() }];
     });
   }
 

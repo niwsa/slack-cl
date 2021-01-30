@@ -187,7 +187,7 @@ export default function Home() {
           </summary>
           <ul>
             <li>Click on the room in the left pane</li>
-            <li>Open the same link in another window</li>
+            <li>Open the same link in another window or a different device</li>
             <li>
               If no room you can add room by clicking Add Room button above
             </li>

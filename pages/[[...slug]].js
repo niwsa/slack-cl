@@ -234,6 +234,15 @@ export default function Home() {
     roomid && importRTClib();
   }, [roomid]);
 
+  useEffect(() => {
+    // whenever room changes stop current running streams
+    videos.forEach(({ stream }) => {
+      console.log("stopping track");
+      stream.getTracks().forEach((track) => track.stop());
+    });
+    setVideos([]);
+  }, [roomid]);
+
   // useEffect(() => {
   //   myPeerRef.current?.id &&
   //     roomid &&
@@ -273,7 +282,7 @@ export default function Home() {
           </summary>
           <ul>
             <li>Click on the room in the left pane</li>
-            <li>Open the same link in another window/tab</li>
+            <li>Open the same link in another window</li>
             <li>
               If no room you can add room by clicking Add Room button above
             </li>

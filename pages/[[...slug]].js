@@ -3,24 +3,6 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import styles from "styles/Home.module.scss";
 
-// function waitForAllICE(pc, destination) {
-//   return new Promise((resolve, reject) => {
-//     pc.onicecandidate = (iceEvent) => {
-//       if (iceEvent.candidate === null) {
-//         console.log(`gathering complete`);
-//         resolve();
-//       } else {
-//         console.log(`ICE CANDIDATE`, iceEvent.candidate);
-//         destination.addIceCandidate(iceEvent.candidate).catch((e) => {
-//           console.log("Failure during addIceCandidate(): ", e);
-//           resolve();
-//         });
-//       }
-//     };
-//     setTimeout(() => reject("Waited a long time for ice candidates..."), 10000);
-//   });
-// }
-
 export default function Home() {
   const { query } = useRouter();
 
@@ -29,83 +11,6 @@ export default function Home() {
   const roomid = slug?.[0];
 
   console.log(`roomId`, roomid);
-
-  // async function setupRTC() {
-  //   try {
-  //     lc.current = new RTCPeerConnection();
-  //     rc.current = new RTCPeerConnection();
-  //     lc.current.oniceconnectionstatechange = (e) =>
-  //       console.log(lc.current.iceConnectionState);
-  //     rc.current.oniceconnectionstatechange = (e) =>
-  //       console.log(rc.current.iceConnectionState);
-
-  //     bobHandle.current = lc.current.createDataChannel("channel");
-
-  //     bobHandle.current.onopen = () => {
-  //       console.log("Local channel open!");
-  //       rc.current.ondatachannel = ({ channel }) => {
-  //         console.log(`channel`, channel);
-  //         channel.onopen = () => {
-  //           aliceHandle.current = channel;
-  //           console.log(`onRemoteDataChannel:`, aliceHandle.current);
-  //           aliceHandle.current.onmessage = (e) => {
-  //             console.log("received message from Bob", e.data);
-  //             setThread((t) => [...t, { text: e.data, author: "Bob" }]);
-  //           };
-  //           aliceHandle.current.onclose = () => {
-  //             console.log("Remote channel closed!");
-  //           };
-  //         };
-  //       };
-  //     };
-
-  //     bobHandle.current.onclose = () => {
-  //       console.log("Local channel closed!");
-  //     };
-
-  //     bobHandle.current.onmessage = (e) => {
-  //       console.log("received message from Alice", e.data);
-  //       setThread((t) => [...t, { text: e.data, author: "Alice" }]);
-  //     };
-
-  //     const initLocalOffer = async () => {
-  //       const localOffer = await lc.current.createOffer();
-  //       console.log(`Got local offer`, localOffer);
-  //       const localDesc = await lc.current.setLocalDescription(localOffer);
-  //       const remoteDesc = await rc.current.setRemoteDescription(localOffer);
-  //       // return Promise.all([localDesc,iceGathering, remoteDesc]);
-  //     };
-
-  //     const initRemoteAnswer = async () => {
-  //       const remoteAnswer = await rc.current.createAnswer();
-  //       console.log(`Got remote answer`, remoteAnswer);
-  //       const localDesc = await rc.current.setLocalDescription(remoteAnswer);
-  //       const remoteDesc = await lc.current.setRemoteDescription(remoteAnswer);
-  //     };
-
-  //     await initLocalOffer();
-  //     await waitForAllICE(lc.current, rc.current);
-  //     await initRemoteAnswer();
-  //     await waitForAllICE(rc.current, lc.current);
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // }
-
-  // const webRTCInit = async () => {
-  // await import("webrtc-adapter");
-  // await setupRTC();
-  // try {
-  //   const videoStream = await navigator.mediaDevices.getUserMedia(
-  //     mediaStreamConstraints
-  //   );
-  //   bobVideoRef.current.srcObject = videoStream;
-  //   aliceVideoRef.current.srcObject = videoStream;
-  //   lc.current.addStream(videoStream);
-  // } catch (err) {
-  //   console.error(err);
-  // }
-  // };
 
   // const localUserId = useRef(null);
   const socketRef = useRef(null);
@@ -144,12 +49,14 @@ export default function Home() {
     }
   };
 
-  function addVideo(stream) {
+  function addVideo(stream, userId) {
+    console.log(`adding video from ${userId}`);
     setVideos((cur) => {
       const videoInArr = cur.findIndex(
         ({ stream: vStream }) => vStream === stream
       );
       if (videoInArr !== -1) {
+        console.log(`video stream already in grid`);
         return cur;
       }
       return [...cur, { stream: stream, ref: createRef() }];
@@ -161,6 +68,8 @@ export default function Home() {
       const { socket, myPeer } = await import("lib/webRTC");
       socketRef.current = socket;
       myPeerRef.current = myPeer;
+
+      socket.open();
 
       myPeer.on("open", (id) => {
         roomid && socket.emit("join-room", roomid, id);
@@ -174,25 +83,26 @@ export default function Home() {
           audio: true,
         })
         .then((stream) => {
-          console.log(`add video L168`);
-          addVideo(stream);
+          console.log(`add video L86`);
+          addVideo(stream, myPeer.id);
 
           myPeer.on("call", (call) => {
-            console.log(`answering call from ${call.peer} L172`);
+            console.log(`answering call from ${call.peer} L90`);
             call.answer(stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L175`);
-              addVideo(userVideoStream);
+              console.log(`add video L93`);
+              addVideo(userVideoStream, call.peer);
             });
           });
           socket.on("user-connected", (userId) => {
-            console.log("user-connected L180 userId::", userId);
-
+            console.log("user-connected L98 userId::", userId);
             const call = myPeer.call(userId, stream);
             call.on("stream", (userVideoStream) => {
-              console.log(`add video L185`);
-              addVideo(userVideoStream);
+              console.log(`add video L101`);
+              addVideo(userVideoStream, userId);
               call.on("close", () => {
+                console.log(`closing user stream L104`);
+                userVideoStream.getTracks().forEach((track) => track.stop());
                 // delVideoStream(userVideoStream);
                 setVideos((cur) => {
                   const videoToDelIndex = cur.findIndex(
@@ -230,11 +140,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    roomid && console.log(`called importRTClib`, roomid);
-    roomid && importRTClib();
-  }, [roomid]);
-
-  useEffect(() => {
+    socketRef.current?.close();
     // whenever room changes stop current running streams
     videos.forEach(({ stream }) => {
       console.log("stopping track");
@@ -243,11 +149,10 @@ export default function Home() {
     setVideos([]);
   }, [roomid]);
 
-  // useEffect(() => {
-  //   myPeerRef.current?.id &&
-  //     roomid &&
-  //     socketRef.current.emit("join-room", roomid, myPeerRef.current.id);
-  // }, [roomid]);
+  useEffect(() => {
+    roomid && console.log(`called importRTClib`, roomid);
+    roomid && importRTClib();
+  }, [roomid]);
 
   return (
     <main className={styles.workspace}>
@@ -282,105 +187,18 @@ export default function Home() {
           </summary>
           <ul>
             <li>Click on the room in the left pane</li>
-            <li>Open the same link in another window</li>
+            <li>Open the same link in another window or a different device</li>
             <li>
               If no room you can add room by clicking Add Room button above
             </li>
           </ul>
         </details>
       </div>
-
       <div className={styles.videogrid}>
         {videos.map((v, i) => (
           <video key={i} ref={v.ref}></video>
         ))}
       </div>
-      {/* <video
-            ref={bobVideoRef}
-            style={{ maxHeight: "200px" }}
-            muted={true}
-          ></video>
-          <video
-            ref={aliceVideoRef}
-            style={{ maxHeight: "200px" }}
-            muted={true}
-          ></video> */}
-      {/* <div className={styles.txteditor}>
-            <textarea
-              value={bobMsgVal}
-              onChange={({ target: { value } }) => {
-                setBobMsgVal(value);
-              }}
-              ref={bobTxtArea}
-              wrap="off"
-            ></textarea>
-            <div className={styles.actionBar}>
-              <button
-                aria-label="Send message"
-                className={styles.send}
-                onClick={() => {
-                  bobMsgVal && bobHandle.current.send(bobMsgVal);
-                  setBobMsgVal("");
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 12l-4 9 20-9H6zM2 3l4 9h16L2 3z"
-                    fill="transparent"
-                    stroke="currentColor"
-                    strokeMiterlimit="10"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div> */}
-      {/* <div className={styles.alice}>
-          <section>
-            {thread.map(({ text, author }, index) => (
-              <div key={index}>
-                {author}: {text}
-              </div>
-            ))}
-          </section>
-          <video
-            ref={aliceVideoRef}
-            autoPlay
-            style={{ maxHeight: "200px" }}
-          ></video>
-
-          <div className={styles.txteditor}>
-            <textarea
-              value={aliceMsgVal}
-              onChange={({ target: { value } }) => {
-                setAliceMsgVal(value);
-              }}
-              ref={aliceTxtArea}
-            ></textarea>
-            <div className={styles.actionBar}>
-              <button
-                aria-label="Send message"
-                className={styles.send}
-                onClick={() => {
-                  aliceMsgVal && aliceHandle.current.send(aliceMsgVal);
-                  setAliceMsgVal("");
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 12l-4 9 20-9H6zM2 3l4 9h16L2 3z"
-                    fill="transparent"
-                    stroke="currentColor"
-                    strokeMiterlimit="10"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div> */}
     </main>
   );
 }
